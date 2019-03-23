@@ -52,13 +52,13 @@ static pthread_mutex_t mutex;
 #define COLOR_OBJECT_DETECTOR_FPS2 0 ///< Default FPS (zero means run at camera fps)
 #endif
 
-// Orange color settings, currently unused
-// uint8_t y_low = 50;
-// uint8_t y_high = 240;
-// uint8_t u_low = 0;
-// uint8_t u_high = 130;
-// uint8_t v_low = 170; 
-// uint8_t v_high = 255;
+// Orange color settings
+uint8_t y_min = 50;
+uint8_t y_max = 255;
+uint8_t u_min = 0;
+uint8_t u_max = 130;
+uint8_t v_min = 150; 
+uint8_t v_max = 255;
 
 
 // Filter Settings
@@ -213,6 +213,8 @@ void color_object_detector_init(void)
  * @param draw - whether or not to draw on image
  * @return number of pixels found
  */
+
+// Piggybacking on this function that counts green pixels to also count orange pixels per column
 uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc, bool draw,
                               uint8_t lum_min, uint8_t lum_max,
                               uint8_t cb_min, uint8_t cb_max,
@@ -253,12 +255,18 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
         vp = &buffer[y * 2 * img->w + 2 * x];      // V
         yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y2
       }
-      if ( (*yp >= lum_min) && (*yp <= lum_max) &&
+      if ( (*yp >= lum_min ) && (*yp <= lum_max) &&
            (*up >= cb_min ) && (*up <= cb_max ) &&
            (*vp >= cr_min ) && (*vp <= cr_max )) {
         cnt ++;
         tot_x += x;
         tot_y += y;
+      }
+
+
+      if ( (*yp >= y_min) && (*yp <= y_max) &&
+           (*up >= u_min ) && (*up <= u_max ) &&
+           (*vp >= v_min ) && (*vp <= v_max )) {
 
         if ( (total_y <= 104) ){
           col_1 ++;
@@ -275,11 +283,7 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
 	if ( (total_y <= 520) && (total_y > 416) ){
           col_5 ++;
         }
-
-        if (draw){
-          *yp = 255;  // make pixel brighter in image
-        }
-      }
+      }	
     }
   }
   if (cnt > 0) {
