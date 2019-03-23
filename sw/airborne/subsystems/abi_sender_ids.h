@@ -423,4 +423,11 @@
 #define COLOR_OBJECT_DETECTION2_ID 2
 #endif
 
+/*
+ * ORANGE_COLOR_COLUMNS communication (message 28)
+*/
+#ifndef COLOR_COLUMNS_COUNTED_ID
+#define COLOR_COLUMNS_COUNTED_ID 1
+#endif
+
 #endif /* ABI_SENDER_IDS_H */

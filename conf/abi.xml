@@ -191,6 +191,14 @@
       <field name="extra"        type="int16_t">Extra field for options like detector source etc</field>
     </message>
 
+    <message name="ORANGE_COLOR_COLUMNS" id="28">
+      <field name="column_1"     type="uint32_t">Orange pixel count in column 1</field>
+      <field name="column_2"     type="uint32_t">Orange pixel count in column 2</field>
+      <field name="column_3"     type="uint32_t">Orange pixel count in column 3</field>
+      <field name="column_4"     type="uint32_t">Orange pixel count in column 4</field>
+      <field name="column_5"     type="uint32_t">Orange pixel count in column 5</field>
+    </message>
+
   </msg_class>
 
 </protocol>

@@ -52,6 +52,15 @@ static pthread_mutex_t mutex;
 #define COLOR_OBJECT_DETECTOR_FPS2 0 ///< Default FPS (zero means run at camera fps)
 #endif
 
+// Orange color settings, currently unused
+// uint8_t y_low = 50;
+// uint8_t y_high = 240;
+// uint8_t u_low = 0;
+// uint8_t u_high = 130;
+// uint8_t v_low = 170; 
+// uint8_t v_high = 255;
+
+
 // Filter Settings
 uint8_t cod_lum_min1 = 0;
 uint8_t cod_lum_max1 = 0;
@@ -71,12 +80,20 @@ bool cod_draw1 = false;
 bool cod_draw2 = false;
 
 // define global variables
+
+uint32_t col1;
+uint32_t col2;
+uint32_t col3;
+uint32_t col4;
+uint32_t col5;
+
 struct color_object_t {
   int32_t x_c;
   int32_t y_c;
   uint32_t color_count;
   bool updated;
 };
+
 struct color_object_t global_filters[2];
 
 // Function
@@ -201,6 +218,14 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
                               uint8_t cb_min, uint8_t cb_max,
                               uint8_t cr_min, uint8_t cr_max)
 {
+  uint32_t total_y = 0;
+
+  uint32_t col_1 = 0;
+  uint32_t col_2 = 0;
+  uint32_t col_3 = 0;
+  uint32_t col_4 = 0;
+  uint32_t col_5 = 0;
+
   uint32_t cnt = 0;
   uint32_t tot_x = 0;
   uint32_t tot_y = 0;
@@ -208,11 +233,15 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
 
   // Go through all the pixels
   for (uint16_t y = 0; y < img->h; y++) {
+    total_y++;
     for (uint16_t x = 0; x < img->w; x ++) {
       // Check if the color is inside the specified values
       uint8_t *yp, *up, *vp;
       if (x % 2 == 0) {
         // Even x
+
+	VERBOSE_PRINT("EVEN X VALUE: %d\n", x);
+
         up = &buffer[y * 2 * img->w + 2 * x];      // U
         yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y1
         vp = &buffer[y * 2 * img->w + 2 * x + 2];  // V
@@ -230,6 +259,23 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
         cnt ++;
         tot_x += x;
         tot_y += y;
+
+        if ( (total_y <= 104) ){
+          col_1 ++;
+        }
+	if ( (total_y <= 208) && (total_y > 104) ){
+          col_2 ++;
+        }
+	if ( (total_y <= 312) && (total_y > 208) ){
+          col_3 ++;
+        }
+	if ( (total_y <= 416) && (total_y > 312) ){
+          col_4 ++;
+        }
+	if ( (total_y <= 520) && (total_y > 416) ){
+          col_5 ++;
+        }
+
         if (draw){
           *yp = 255;  // make pixel brighter in image
         }
@@ -243,6 +289,13 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
     *p_xc = 0;
     *p_yc = 0;
   }
+
+  col1 = col_1;
+  col2 = col_2;
+  col3 = col_3;
+  col4 = col_4;
+  col5 = col_5;
+
   return cnt;
 }
 
@@ -257,10 +310,12 @@ void color_object_detector_periodic(void)
     AbiSendMsgVISUAL_DETECTION(COLOR_OBJECT_DETECTION1_ID, local_filters[0].x_c, local_filters[0].y_c,
         0, 0, local_filters[0].color_count, 0);
     local_filters[0].updated = false;
+    
   }
   if(local_filters[1].updated){
     AbiSendMsgVISUAL_DETECTION(COLOR_OBJECT_DETECTION2_ID, local_filters[1].x_c, local_filters[1].y_c,
         0, 0, local_filters[1].color_count, 1);
+    AbiSendMsgORANGE_COLOR_COLUMNS(COLOR_COLUMNS_COUNTED_ID, col1, col2, col3, col4, col5);
     local_filters[1].updated = false;
   }
 }

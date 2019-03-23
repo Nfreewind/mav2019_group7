@@ -66,6 +66,12 @@ int32_t floor_centroid = 0;             // floor detector centroid in y directio
 float avoidance_heading_direction = 0;  // heading change direction for avoidance [rad/s]
 int16_t obstacle_free_confidence = 0;   // a measure of how certain we are that the way ahead if safe.
 
+uint32_t column1_count = 0;
+uint32_t column2_count = 0;
+uint32_t column3_count = 0;
+uint32_t column4_count = 0;
+uint32_t column5_count = 0;
+
 const int16_t max_trajectory_confidence = 5;  // number of consecutive negative object detections to be sure we are obstacle free
 
 // This call back will be used to receive the color count from the orange detector
@@ -96,6 +102,24 @@ static void floor_detection_cb(uint8_t __attribute__((unused)) sender_id,
   floor_centroid = pixel_y;
 }
 
+#ifndef COLUMNS_COUNT_ID
+#error This module requires the columns counter ID
+#endif
+static abi_event orange_color_columns_ev;
+static void orange_color_columns_cb(uint8_t __attribute__((unused)) sender_id,
+                                    uint32_t column_1, uint32_t column_2,
+                                    uint32_t column_3, uint32_t column_4,
+			            uint32_t column_5)
+{
+  column1_count = column_1;
+  column2_count = column_2;
+  column3_count = column_3;
+  column4_count = column_4;
+  column5_count = column_5;
+}
+
+
+
 /*
  * Initialisation function
  */
@@ -108,6 +132,7 @@ void orange_avoider_guided_init(void)
   // bind our colorfilter callbacks to receive the color filter outputs
   AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID, &color_detection_ev, color_detection_cb);
   AbiBindMsgVISUAL_DETECTION(FLOOR_VISUAL_DETECTION_ID, &floor_detection_ev, floor_detection_cb);
+  AbiBindMsgORANGE_COLOR_COLUMNS(COLUMNS_COUNT_ID, &orange_color_columns_ev, orange_color_columns_cb);
 }
 
 /*
@@ -127,9 +152,20 @@ void orange_avoider_guided_periodic(void)
   int32_t floor_count_threshold = oag_floor_count_frac * front_camera.output_size.w * front_camera.output_size.h;
   float floor_centroid_frac = floor_centroid / (float)front_camera.output_size.h / 2.f;
 
-  VERBOSE_PRINT("Color_count: %d  threshold: %d state: %d \n", color_count, color_count_threshold, navigation_state);
-  VERBOSE_PRINT("Floor count: %d, threshold: %d\n", floor_count, floor_count_threshold);
-  VERBOSE_PRINT("Floor centroid: %f\n", floor_centroid_frac);
+  uint32_t column_size = front_camera.output_size.w * front_camera.output_size.h / 5;
+  float column1_orange_fraction = (float)column1_count / column_size;
+  float column2_orange_fraction = (float)column2_count / column_size;
+  float column3_orange_fraction = (float)column3_count / column_size;
+  float column4_orange_fraction = (float)column4_count / column_size;
+  float column5_orange_fraction = (float)column5_count / column_size;
+
+  VERBOSE_PRINT("Column size: %d\n", column_size);
+  VERBOSE_PRINT("Fraction of orange in column 1: %f\n", column1_orange_fraction);
+  VERBOSE_PRINT("Fraction of orange in column 2: %f\n", column2_orange_fraction);
+  VERBOSE_PRINT("Fraction of orange in column 3: %f\n", column3_orange_fraction);
+  VERBOSE_PRINT("Fraction of orange in column 4: %f\n", column4_orange_fraction);
+  VERBOSE_PRINT("Fraction of orange in column 5: %f\n", column5_orange_fraction);
+  VERBOSE_PRINT("");
 
   // update our safe confidence using color threshold
   if(color_count < color_count_threshold){
