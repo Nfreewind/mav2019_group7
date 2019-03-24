@@ -60,6 +60,14 @@ uint8_t u_max = 130;
 uint8_t v_min = 150; 
 uint8_t v_max = 255;
 
+// Green color settings
+//uint8_t y_min = 50;
+//uint8_t y_max = 255;
+//uint8_t u_min = 0;
+//uint8_t u_max = 130;
+//uint8_t v_min = 0; 
+//uint8_t v_max = 130;
+
 
 // Filter Settings
 uint8_t cod_lum_min1 = 0;
@@ -86,6 +94,12 @@ uint32_t col2;
 uint32_t col3;
 uint32_t col4;
 uint32_t col5;
+
+uint32_t floor1;
+uint32_t floor2;
+uint32_t floor3;
+uint32_t floor4;
+uint32_t floor5;
 
 struct color_object_t {
   int32_t x_c;
@@ -221,12 +235,19 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
                               uint8_t cr_min, uint8_t cr_max)
 {
   uint32_t total_y = 0;
+  uint32_t total_x = 0;
 
   uint32_t col_1 = 0;
   uint32_t col_2 = 0;
   uint32_t col_3 = 0;
   uint32_t col_4 = 0;
   uint32_t col_5 = 0;
+
+  uint32_t floor_1 = 0;
+  uint32_t floor_2 = 0;
+  uint32_t floor_3 = 0;
+  uint32_t floor_4 = 0;
+  uint32_t floor_5 = 0;
 
   uint32_t cnt = 0;
   uint32_t tot_x = 0;
@@ -236,14 +257,13 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
   // Go through all the pixels
   for (uint16_t y = 0; y < img->h; y++) {
     total_y++;
+    total_x = 0;
     for (uint16_t x = 0; x < img->w; x ++) {
+      total_x++;
       // Check if the color is inside the specified values
       uint8_t *yp, *up, *vp;
       if (x % 2 == 0) {
         // Even x
-
-	VERBOSE_PRINT("EVEN X VALUE: %d\n", x);
-
         up = &buffer[y * 2 * img->w + 2 * x];      // U
         yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y1
         vp = &buffer[y * 2 * img->w + 2 * x + 2];  // V
@@ -261,8 +281,26 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
         cnt ++;
         tot_x += x;
         tot_y += y;
-      }
+        
+        if ( total_x <= 120 ){
 
+	  if ( (total_y <= 104) ){
+	    floor_1 ++;
+	  }
+	  if ( (total_y <= 208) && (total_y > 104) ){
+	    floor_2 ++;
+	  }
+	  if ( (total_y <= 312) && (total_y > 208) ){
+	    floor_3 ++;
+	  }
+	  if ( (total_y <= 416) && (total_y > 312) ){
+	    floor_4 ++;
+	  }
+	  if ( (total_y <= 520) && (total_y > 416) ){
+	    floor_5 ++;
+	  }
+        }	
+      }
 
       if ( (*yp >= y_min) && (*yp <= y_max) &&
            (*up >= u_min ) && (*up <= u_max ) &&
@@ -300,6 +338,12 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
   col4 = col_4;
   col5 = col_5;
 
+  floor1 = floor_1;
+  floor2 = floor_2;
+  floor3 = floor_3;
+  floor4 = floor_4;
+  floor5 = floor_5;
+
   return cnt;
 }
 
@@ -319,7 +363,7 @@ void color_object_detector_periodic(void)
   if(local_filters[1].updated){
     AbiSendMsgVISUAL_DETECTION(COLOR_OBJECT_DETECTION2_ID, local_filters[1].x_c, local_filters[1].y_c,
         0, 0, local_filters[1].color_count, 1);
-    AbiSendMsgORANGE_COLOR_COLUMNS(COLOR_COLUMNS_COUNTED_ID, col1, col2, col3, col4, col5);
+    AbiSendMsgORANGE_COLOR_COLUMNS(COLOR_COLUMNS_COUNTED_ID, col1, col2, col3, col4, col5, floor1, floor2, floor3, floor4, floor5);
     local_filters[1].updated = false;
   }
 }

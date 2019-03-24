@@ -197,6 +197,11 @@
       <field name="column_3"     type="uint32_t">Orange pixel count in column 3</field>
       <field name="column_4"     type="uint32_t">Orange pixel count in column 4</field>
       <field name="column_5"     type="uint32_t">Orange pixel count in column 5</field>
+      <field name="floor_column_1"     type="uint32_t">Green pixel count in column 1</field>
+      <field name="floor_column_2"     type="uint32_t">Green pixel count in column 2</field>
+      <field name="floor_column_3"     type="uint32_t">Green pixel count in column 3</field>
+      <field name="floor_column_4"     type="uint32_t">Green pixel count in column 4</field>
+      <field name="floor_column_5"     type="uint32_t">Green pixel count in column 5</field>
     </message>
 
   </msg_class>

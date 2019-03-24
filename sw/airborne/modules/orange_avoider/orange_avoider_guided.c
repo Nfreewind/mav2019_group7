@@ -72,6 +72,12 @@ uint32_t column3_count = 0;
 uint32_t column4_count = 0;
 uint32_t column5_count = 0;
 
+uint32_t floor1_count = 0;
+uint32_t floor2_count = 0;
+uint32_t floor3_count = 0;
+uint32_t floor4_count = 0;
+uint32_t floor5_count = 0;
+
 const int16_t max_trajectory_confidence = 5;  // number of consecutive negative object detections to be sure we are obstacle free
 
 // This call back will be used to receive the color count from the orange detector
@@ -109,13 +115,21 @@ static abi_event orange_color_columns_ev;
 static void orange_color_columns_cb(uint8_t __attribute__((unused)) sender_id,
                                     uint32_t column_1, uint32_t column_2,
                                     uint32_t column_3, uint32_t column_4,
-			            uint32_t column_5)
+			            uint32_t column_5, uint32_t floor_1,
+				    uint32_t floor_2, uint32_t floor_3,
+				    uint32_t floor_4, uint32_t floor_5)
 {
   column1_count = column_1;
   column2_count = column_2;
   column3_count = column_3;
   column4_count = column_4;
   column5_count = column_5;
+
+  floor1_count = floor_1;
+  floor2_count = floor_2;
+  floor3_count = floor_3;
+  floor4_count = floor_4;
+  floor5_count = floor_5;
 }
 
 
@@ -153,19 +167,32 @@ void orange_avoider_guided_periodic(void)
   float floor_centroid_frac = floor_centroid / (float)front_camera.output_size.h / 2.f;
 
   uint32_t column_size = front_camera.output_size.w * front_camera.output_size.h / 5;
+
   float column1_orange_fraction = (float)column1_count / column_size;
   float column2_orange_fraction = (float)column2_count / column_size;
   float column3_orange_fraction = (float)column3_count / column_size;
   float column4_orange_fraction = (float)column4_count / column_size;
   float column5_orange_fraction = (float)column5_count / column_size;
 
-  VERBOSE_PRINT("Column size: %d\n", column_size);
+  float column1_green_fraction = (float)floor1_count / (column_size * 2);
+  float column2_green_fraction = (float)floor2_count / (column_size * 2);
+  float column3_green_fraction = (float)floor3_count / (column_size * 2);
+  float column4_green_fraction = (float)floor4_count / (column_size * 2);
+  float column5_green_fraction = (float)floor5_count / (column_size * 2);
+
+  VERBOSE_PRINT("\n");
   VERBOSE_PRINT("Fraction of orange in column 1: %f\n", column1_orange_fraction);
   VERBOSE_PRINT("Fraction of orange in column 2: %f\n", column2_orange_fraction);
   VERBOSE_PRINT("Fraction of orange in column 3: %f\n", column3_orange_fraction);
   VERBOSE_PRINT("Fraction of orange in column 4: %f\n", column4_orange_fraction);
   VERBOSE_PRINT("Fraction of orange in column 5: %f\n", column5_orange_fraction);
-  VERBOSE_PRINT("");
+  VERBOSE_PRINT("\n");
+  VERBOSE_PRINT("Fraction of green in bottom half of column 1: %f\n", column1_green_fraction);
+  VERBOSE_PRINT("Fraction of green in bottom half of column 2: %f\n", column2_green_fraction);
+  VERBOSE_PRINT("Fraction of green in bottom half of column 3: %f\n", column3_green_fraction);
+  VERBOSE_PRINT("Fraction of green in bottom half of column 4: %f\n", column4_green_fraction);
+  VERBOSE_PRINT("Fraction of green in bottom half of column 5: %f\n", column5_green_fraction);
+  VERBOSE_PRINT("\n");
 
   // update our safe confidence using color threshold
   if(color_count < color_count_threshold){
